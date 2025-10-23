@@ -11,8 +11,6 @@
   --border: rgba(255, 255, 255, 0.06);
   --shadow: rgba(0, 0, 0, 0.25);
   --radius: 16px;
-  --canvas-width: 960px;
-  --canvas-height: 540px;
   font-family: "Fira Sans", "Segoe UI", sans-serif;
 }
 
@@ -172,15 +170,6 @@ button.danger:hover {
   gap: 16px;
 }
 
-.canvas-controls input[type="number"] {
-  width: 100%;
-}
-
-.canvas-controls .help-text {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
 .line-control {
   border-radius: 12px;
   padding: 14px;
@@ -237,23 +226,8 @@ button.danger:hover {
   font-style: italic;
 }
 
-.preview-stage {
-  background: rgba(10, 12, 21, 0.6);
-  border-radius: calc(var(--radius) - 6px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: auto;
-}
-
 .logo-preview {
-  width: var(--canvas-width);
-  min-width: var(--canvas-width);
-  height: var(--canvas-height);
-  min-height: var(--canvas-height);
-  max-width: 100%;
+  min-height: 420px;
   background: var(--bg-preview);
   border-radius: calc(var(--radius) - 2px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -264,7 +238,6 @@ button.danger:hover {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  box-sizing: border-box;
 }
 
 .logo-line {
@@ -391,8 +364,9 @@ button.danger:hover {
   .app {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
-  .preview-stage {
-    padding: 16px;
+
+  .logo-preview {
+    min-height: 360px;
   }
 }
 

@@ -19,18 +19,6 @@ const textureOptions = [
   { label: "Metal pulido", value: "metal" }
 ];
 
-const DEFAULT_CANVAS = {
-  width: 960,
-  height: 540
-};
-
-const CANVAS_LIMITS = {
-  width: { min: 240, max: 2000 },
-  height: { min: 240, max: 2000 }
-};
-
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
 const createLetter = (char = "") => ({
   char,
   fontFamily: fonts[0].value,
@@ -68,21 +56,17 @@ const createLine = (text = "Logo Creativo") => ({
 
 const logoState = {
   lines: [createLine()],
-  selected: null,
-  canvas: { ...DEFAULT_CANVAS }
+  selected: null
 };
 
 const lineControls = document.getElementById("lineControls");
 const preview = document.getElementById("logoPreview");
 const letterControls = document.getElementById("letterControls");
 const selectedInfo = document.getElementById("selectedInfo");
-const canvasWidthInput = document.getElementById("canvasWidth");
-const canvasHeightInput = document.getElementById("canvasHeight");
 
 const addLineBtn = document.getElementById("addLine");
 const resetBtn = document.getElementById("resetLogo");
-const exportPngBtn = document.getElementById("exportPng");
-const exportSvgBtn = document.getElementById("exportSvg");
+const exportBtn = document.getElementById("exportButton");
 
 const ensureLetterDataMatchesText = (line) => {
   const characters = Array.from(line.text);
@@ -94,24 +78,6 @@ const ensureLetterDataMatchesText = (line) => {
     return createLetter(char);
   });
   line.letterData = updated;
-};
-
-const updateLineCharacter = (lineIndex, letterIndex, newChar) => {
-  const line = logoState.lines[lineIndex];
-  if (!line) return;
-  const characters = Array.from(line.text);
-  if (letterIndex < 0 || letterIndex >= characters.length) return;
-  characters[letterIndex] = newChar;
-  line.text = characters.join("");
-  const letter = line.letterData[letterIndex];
-  if (letter) {
-    letter.char = newChar;
-  }
-  const textInputs = lineControls.querySelectorAll(".line-control input[type=\"text\"]");
-  const textInput = textInputs[lineIndex];
-  if (textInput) {
-    textInput.value = line.text;
-  }
 };
 
 const renderLineControls = () => {
@@ -149,8 +115,7 @@ const renderLineControls = () => {
           logoState.selected = null;
         }
       }
-      renderPreview();
-      renderControlsForSelected();
+      renderAll();
     });
     wrapper.append(textLabel);
 
@@ -179,19 +144,19 @@ const renderLineControls = () => {
     );
     trackingInput.addEventListener("input", (event) => {
       line.tracking = Number(event.target.value);
-      renderPreview();
+      renderAll();
     });
     baselineInput.addEventListener("input", (event) => {
       line.baselineShift = Number(event.target.value);
-      renderPreview();
+      renderAll();
     });
     gapInput.addEventListener("input", (event) => {
       line.lineGap = Number(event.target.value);
-      renderPreview();
+      renderAll();
     });
     alignSelect.addEventListener("change", (event) => {
       line.align = event.target.value;
-      renderPreview();
+      renderAll();
     });
 
     wrapper.append(spacingGroup);
@@ -248,8 +213,6 @@ const applyTexture = (element, letter) => {
 };
 
 const renderPreview = () => {
-  preview.style.setProperty("--canvas-width", `${logoState.canvas.width}px`);
-  preview.style.setProperty("--canvas-height", `${logoState.canvas.height}px`);
   preview.innerHTML = "";
   logoState.lines.forEach((line, lineIndex) => {
     ensureLetterDataMatchesText(line);
@@ -328,38 +291,9 @@ const renderLetterSelectInfo = () => {
   const { lineIndex, letterIndex } = logoState.selected;
   const line = logoState.lines[lineIndex];
   const letter = line.letterData[letterIndex];
-  const displayChar = letter.char && letter.char.trim() !== "" ? letter.char : "(espacio)";
-  selectedInfo.innerHTML = `<p>Editando: <strong>Línea ${lineIndex + 1}</strong>, letra <strong>“${displayChar}”</strong></p>`;
-};
-
-const renderCanvasControls = () => {
-  if (document.activeElement !== canvasWidthInput) {
-    canvasWidthInput.value = logoState.canvas.width;
-  }
-  if (document.activeElement !== canvasHeightInput) {
-    canvasHeightInput.value = logoState.canvas.height;
-  }
-};
-
-const updateCanvasDimension = (dimension, rawValue, clampValue = false) => {
-  if (rawValue === "" || rawValue === null) return;
-  const parsed = Number(rawValue);
-  if (!Number.isFinite(parsed)) {
-    if (clampValue) {
-      renderCanvasControls();
-    }
-    return;
-  }
-  const limits = CANVAS_LIMITS[dimension];
-  let nextValue = clampValue ? clamp(Math.round(parsed), limits.min, limits.max) : Math.round(parsed);
-  if (!clampValue && (nextValue < limits.min || nextValue > limits.max)) {
-    return;
-  }
-  logoState.canvas[dimension] = nextValue;
-  renderPreview();
-  if (clampValue) {
-    renderCanvasControls();
-  }
+  selectedInfo.innerHTML = `<p>Editando: <strong>Línea ${lineIndex + 1}</strong>, letra <strong>“${
+    letter.char || "(espacio)"
+  }”</strong></p>`;
 };
 
 const buildSelect = (options, value) => {
@@ -438,28 +372,6 @@ const renderControlsForSelected = () => {
 
   const typography = document.createElement("div");
   typography.className = "control-group";
-  const charLabel = document.createElement("label");
-  charLabel.textContent = "Carácter";
-  const charInput = document.createElement("input");
-  charInput.type = "text";
-  charInput.maxLength = 2;
-  charInput.value = letter.char;
-  charInput.placeholder = "Espacio";
-  charInput.addEventListener("input", (event) => {
-    if (event.target.value === "") {
-      event.target.value = letter.char;
-      return;
-    }
-    const newChar = Array.from(event.target.value).pop();
-    event.target.value = newChar;
-    updateLineCharacter(lineIndex, letterIndex, newChar);
-    renderPreview();
-    renderLetterSelectInfo();
-  });
-  charLabel.append(charInput);
-  const charHint = document.createElement("small");
-  charHint.textContent = "Escribe un nuevo carácter o pulsa espacio.";
-  charLabel.append(charHint);
   const fontLabel = document.createElement("label");
   fontLabel.textContent = "Familia tipográfica";
   const fontSelect = buildSelect(fonts, letter.fontFamily);
@@ -500,7 +412,7 @@ const renderControlsForSelected = () => {
   });
   styleSelectLabel.append(styleSelect);
 
-  typography.append(charLabel, fontLabel, weightRange.wrapper, styleSelectLabel);
+  typography.append(fontLabel, weightRange.wrapper, styleSelectLabel);
 
   const colorGroup = document.createElement("div");
   colorGroup.className = "control-group";
@@ -751,8 +663,7 @@ const renderControlsForSelected = () => {
   resetLetterBtn.addEventListener("click", () => {
     line.letterData[letterIndex] = createLetter(line.letterData[letterIndex].char);
     logoState.selected = { lineIndex, letterIndex };
-    renderPreview();
-    renderControlsForSelected();
+    renderAll();
   });
   actions.append(resetLetterBtn);
 
@@ -779,19 +690,15 @@ const rgbaToHex = (rgba) => {
 const resetLogo = () => {
   logoState.lines = [createLine()];
   logoState.selected = null;
-  logoState.canvas = { ...DEFAULT_CANVAS };
   renderAll();
 };
 
-const exportPng = async () => {
-  exportPngBtn.disabled = true;
-  exportPngBtn.textContent = "Generando...";
+const exportLogo = async () => {
+  exportBtn.disabled = true;
+  exportBtn.textContent = "Generando...";
   try {
     const canvas = await html2canvas(preview, {
-      backgroundColor: getComputedStyle(preview).backgroundColor || "#11131d",
-      width: logoState.canvas.width,
-      height: logoState.canvas.height,
-      scrollY: -window.scrollY,
+      backgroundColor: "#11131d",
       scale: window.devicePixelRatio < 2 ? 2 : window.devicePixelRatio
     });
     const link = document.createElement("a");
@@ -802,47 +709,14 @@ const exportPng = async () => {
     alert("No fue posible generar la imagen. Intenta nuevamente.");
     console.error(error);
   } finally {
-    exportPngBtn.disabled = false;
-    exportPngBtn.textContent = "Descargar PNG";
-  }
-};
-
-const exportSvg = async () => {
-  if (!window.domtoimage) {
-    alert("La librería para exportar SVG no está disponible.");
-    return;
-  }
-  exportSvgBtn.disabled = true;
-  exportSvgBtn.textContent = "Generando...";
-  try {
-    const dataUrl = await window.domtoimage.toSvg(preview, {
-      width: logoState.canvas.width,
-      height: logoState.canvas.height,
-      bgcolor: getComputedStyle(preview).backgroundColor || "#11131d",
-      style: {
-        transform: "scale(1)",
-        transformOrigin: "center",
-        "--canvas-width": `${logoState.canvas.width}px`,
-        "--canvas-height": `${logoState.canvas.height}px`
-      }
-    });
-    const link = document.createElement("a");
-    link.download = "logotipo.svg";
-    link.href = dataUrl;
-    link.click();
-  } catch (error) {
-    alert("No fue posible generar el SVG. Intenta nuevamente.");
-    console.error(error);
-  } finally {
-    exportSvgBtn.disabled = false;
-    exportSvgBtn.textContent = "Descargar SVG";
+    exportBtn.disabled = false;
+    exportBtn.textContent = "Descargar PNG";
   }
 };
 
 const renderAll = () => {
   renderLineControls();
   renderPreview();
-  renderCanvasControls();
   renderLetterSelectInfo();
 };
 
@@ -851,22 +725,8 @@ addLineBtn.addEventListener("click", () => {
   renderAll();
 });
 
-canvasWidthInput.addEventListener("input", (event) => {
-  updateCanvasDimension("width", event.target.value, false);
-});
-canvasWidthInput.addEventListener("change", (event) => {
-  updateCanvasDimension("width", event.target.value, true);
-});
-canvasHeightInput.addEventListener("input", (event) => {
-  updateCanvasDimension("height", event.target.value, false);
-});
-canvasHeightInput.addEventListener("change", (event) => {
-  updateCanvasDimension("height", event.target.value, true);
-});
-
 resetBtn.addEventListener("click", resetLogo);
-exportPngBtn.addEventListener("click", exportPng);
-exportSvgBtn.addEventListener("click", exportSvg);
+exportBtn.addEventListener("click", exportLogo);
 
 document.body.addEventListener("click", (event) => {
   if (event.target.closest(".logo-letter")) return;

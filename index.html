@@ -20,8 +20,7 @@
         efectos y más. Haz clic en cualquier letra del lienzo para editarla.
       </p>
       <div class="header-actions">
-        <button id="exportPng" class="primary">Descargar PNG</button>
-        <button id="exportSvg" class="secondary">Descargar SVG</button>
+        <button id="exportButton" class="primary">Descargar PNG</button>
         <button id="resetLogo" class="ghost">Restablecer todo</button>
       </div>
     </header>
@@ -40,25 +39,7 @@
       </section>
       <section class="preview" aria-label="Vista previa del logotipo">
         <h2>Vista previa</h2>
-        <div class="panel-block canvas-controls" aria-label="Opciones del lienzo">
-          <div class="inline-inputs">
-            <label>Ancho (px)
-              <input type="number" id="canvasWidth" min="240" max="2000" step="10" inputmode="numeric" />
-            </label>
-            <label>Alto (px)
-              <input type="number" id="canvasHeight" min="240" max="2000" step="10" inputmode="numeric" />
-            </label>
-          </div>
-          <p class="help-text">Estas dimensiones se aplican a la vista previa y a las exportaciones.</p>
-        </div>
-        <div class="preview-stage">
-          <div
-            id="logoPreview"
-            class="logo-preview"
-            role="img"
-            aria-label="Resultado del logotipo"
-          ></div>
-        </div>
+        <div id="logoPreview" class="logo-preview" role="img" aria-label="Resultado del logotipo"></div>
       </section>
     </main>
     <footer class="app-footer">
@@ -68,7 +49,6 @@
       </p>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha256-CQocOITkkpFmSPrbr30YIOCwRvDDDeWGPAHDLcGRIDg=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="app.js"></script>
   </body>
 </html>
